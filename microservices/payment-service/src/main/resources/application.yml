@@ -22,7 +22,7 @@ server:
 razorpay:
   api:
     key: ${RAZORPAY_API_KEY}
-    secret: ${RAZORPAY_SECRET}
+    secret: ${RAZORPAY_SECRET_KEY}
 
 stripe:
   api:

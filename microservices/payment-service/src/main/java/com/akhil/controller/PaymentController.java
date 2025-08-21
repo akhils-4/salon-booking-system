@@ -5,7 +5,7 @@ import com.akhil.model.PaymentOrder;
 import com.akhil.payload.dto.BookingDTO;
 import com.akhil.payload.dto.UserDTO;
 import com.akhil.payload.PaymentLinkResponse;
-import com.akhil.serivce.PaymentService;
+import com.akhil.service.PaymentService;
 import com.razorpay.RazorpayException;
 import com.stripe.exception.StripeException;
 import lombok.RequiredArgsConstructor;

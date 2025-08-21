@@ -28,11 +28,16 @@ public class SalonController {
     }
 
 
-    @PatchMapping("/{salonId}")
-    public ResponseEntity<SalonDTO> updateSalon(@PathVariable Long salonId, @RequestBody SalonDTO salonDTO) throws Exception {
+    @PutMapping("/{salonId}")
+    public ResponseEntity<SalonDTO> updateSalon(@PathVariable Long salonId, @RequestBody SalonDTO salonDTO
+                                                ) throws Exception {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(1L);
-        
+        // Set ownerId in DTO if it's null
+        if (salonDTO.getOwnerId() == null) {
+            salonDTO.setOwnerId(userDTO.getId());
+        }
+
         Salon salon = salonService.updateSalon(salonDTO, userDTO,salonId);
         SalonDTO salonDTO1 = SalonMapper.mapToDTO(salon);
         return  ResponseEntity.ok(salonDTO1);

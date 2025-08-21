@@ -1,4 +1,4 @@
-package com.akhil.serivce.impl;
+package com.akhil.service.impl;
 
 import com.akhil.domain.PaymentMethod;
 import com.akhil.domain.PaymentOrderStatus;
@@ -7,7 +7,7 @@ import com.akhil.payload.dto.BookingDTO;
 import com.akhil.payload.dto.UserDTO;
 import com.akhil.payload.PaymentLinkResponse;
 import com.akhil.repository.PaymentRepository;
-import com.akhil.serivce.PaymentService;
+import com.akhil.service.PaymentService;
 import com.razorpay.Payment;
 import com.razorpay.PaymentLink;
 import com.razorpay.RazorpayClient;
@@ -46,7 +46,7 @@ public class PaymentServiceImpl implements PaymentService {
         order.setPaymentMethod(paymentMethod);
         order.setBookingId(booking.getId());
         order.setSalonId(booking.getSalonId());
-        order.setUserId(user.getId());  // ✅ Added to fix missing userId issue
+        order.setUserId(user.getId());
 
         PaymentOrder savedOrder = paymentRepository.save(order);
 

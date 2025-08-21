@@ -1,4 +1,4 @@
-package com.akhil.serivce;
+package com.akhil.service;
 
 import com.akhil.domain.PaymentMethod;
 import com.akhil.model.PaymentOrder;
@@ -8,7 +8,9 @@ import com.akhil.payload.PaymentLinkResponse;
 import com.razorpay.PaymentLink;
 import com.razorpay.RazorpayException;
 import com.stripe.exception.StripeException;
+import org.springframework.stereotype.Component;
 
+@Component
 public interface PaymentService {
 
 
