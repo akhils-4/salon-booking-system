@@ -5,6 +5,7 @@ import com.akhil.model.Salon;
 import com.akhil.payload.dto.SalonDTO;
 import com.akhil.payload.dto.UserDTO;
 import com.akhil.service.SalonService;
+import com.akhil.service.clients.UserFeignClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +18,13 @@ import java.util.List;
 public class SalonController {
 
     private final SalonService salonService;
+    private final UserFeignClient userFeignClient;
 
     @PostMapping
-    public ResponseEntity<SalonDTO> createSalon(@RequestBody SalonDTO salonDTO){
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(1L);
+    public ResponseEntity<SalonDTO> createSalon(@RequestBody SalonDTO salonDTO,
+                                                @RequestHeader("Authorization") String jwt) throws Exception {
+
+        UserDTO userDTO = userFeignClient.getUserProfile(jwt).getBody();
         Salon salon = salonService.createSalon(salonDTO, userDTO);
         SalonDTO salonDTO1 = SalonMapper.mapToDTO(salon);
         return  ResponseEntity.ok(salonDTO1);
@@ -29,14 +32,15 @@ public class SalonController {
 
 
     @PutMapping("/{salonId}")
-    public ResponseEntity<SalonDTO> updateSalon(@PathVariable Long salonId, @RequestBody SalonDTO salonDTO
+    public ResponseEntity<SalonDTO> updateSalon(@PathVariable Long salonId,
+                                                @RequestBody SalonDTO salonDTO,
+                                                @RequestHeader("Authorization") String jwt
                                                 ) throws Exception {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(1L);
+        UserDTO userDTO = userFeignClient.getUserProfile(jwt).getBody();
         // Set ownerId in DTO if it's null
-        if (salonDTO.getOwnerId() == null) {
-            salonDTO.setOwnerId(userDTO.getId());
-        }
+        //if (salonDTO.getOwnerId() == null) {
+          //  salonDTO.setOwnerId(userDTO.getId());
+        //}
 
         Salon salon = salonService.updateSalon(salonDTO, userDTO,salonId);
         SalonDTO salonDTO1 = SalonMapper.mapToDTO(salon);
@@ -77,11 +81,19 @@ public class SalonController {
     }
 
     @GetMapping("/owner")
-    public ResponseEntity<SalonDTO> getSalonByOwnerId() throws Exception {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(1L);
+    public ResponseEntity<SalonDTO> getSalonByOwnerId(
+            @RequestHeader("Authorization") String jwt
+    ) throws Exception {
+        UserDTO userDTO = userFeignClient.getUserProfile(jwt).getBody();
+
+        if(userDTO == null){
+            throw new Exception("user not found from jwt");
+        }
+
         Salon salon = salonService.getSalonByOwnerId(userDTO.getId());
+
         SalonDTO salonDTOS = SalonMapper.mapToDTO(salon);
+
         return  ResponseEntity.ok(salonDTOS);
     }
 

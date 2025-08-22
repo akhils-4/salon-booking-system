@@ -6,6 +6,8 @@ import com.akhil.dto.ServiceDTO;
 import com.akhil.model.ServiceOffering;
 import com.akhil.repository.ServiceOfferingRepository;
 import com.akhil.service.ServiceOfferingService;
+import com.akhil.service.client.CategoryFeignClient;
+import com.akhil.service.client.SalonFeignClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,15 +18,28 @@ import org.springframework.web.bind.annotation.*;
 public class SalonServiceOfferingController {
 
     private final ServiceOfferingService serviceOfferingService;
+    private final SalonFeignClient salonFeignClient;
+    private final CategoryFeignClient categoryFeignClient;
 
     @PostMapping
-    public ResponseEntity<ServiceOffering> createService(@RequestBody ServiceDTO serviceDTO){
-        SalonDTO salonDTO = new SalonDTO();
-        salonDTO.setId(1L);
+    public ResponseEntity<ServiceOffering> createService(@RequestBody ServiceDTO serviceDTO,@RequestHeader("Authorization") String jwt ) throws Exception {
+        SalonDTO salonDTO = salonFeignClient.getSalonByOwnerId(jwt).getBody();
+
+        // Add null checks
+        if (salonDTO == null || salonDTO.getId() == null) {
+            throw new IllegalArgumentException("Salon details not found");
+        }
+
+        if (serviceDTO.getCategory() == null) {
+            throw new IllegalArgumentException("Category ID is required");
+        }
+        CategoryDTO categoryDTO = categoryFeignClient
+                .getCategoriesByIdAndSalonId( serviceDTO.getCategory(), salonDTO.getId()).getBody();
 
 
-        CategoryDTO categoryDTO = new CategoryDTO();
-        categoryDTO.setId(serviceDTO.getCategory());
+        if (categoryDTO == null) {
+            throw new IllegalArgumentException("Category not found");
+        }
 
         ServiceOffering service = serviceOfferingService.createService(salonDTO,serviceDTO,categoryDTO);
 
@@ -33,12 +48,6 @@ public class SalonServiceOfferingController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<ServiceOffering> updateService(@PathVariable Long id,@RequestBody ServiceOffering serviceOffering) throws Exception {
-        SalonDTO salonDTO = new SalonDTO();
-        salonDTO.setId(1L);
-
-        CategoryDTO categoryDTO = new CategoryDTO();
-        categoryDTO.setId(1L);
-
         ServiceOffering service = serviceOfferingService.updateService(id,serviceOffering);
 
         return ResponseEntity.ok(service);
