@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@tailwind utilities;
+
+/* /* @layer base {
+  body {
+    @apply bg-[#0a0a0f];
+  }
+} */
+.home-page {
+  @apply bg-[#0a0a0f] text-gray-200;
+} */
