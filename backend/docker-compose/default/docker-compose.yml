@@ -164,30 +164,8 @@ services:
     networks:
       - zosh
 
-
-
-#  configserver:
-#    image: "zosh/configserver:v1"
-#    ports:
-#      - "8071:8071"
-#    healthcheck:
-#      test: ["CMD-SHELL", "curl --fail --silent configserver:8071/actuator/health/readiness | grep UP || exit 1"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 10
-#      start_period: 10s
-#    container_name: configserver
-#    depends_on:
-#      rabbit:
-#        condition: service_healthy
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 700m
-#    networks:
-#      - zosh
-
   eurekaserver:
+    build: ../../eurekaserver
     image: "zosh/salon-eurekaserver:v1"
     ports:
       - "8070:8070"
@@ -198,11 +176,6 @@ services:
       retries: 10
       start_period: 10s
     container_name: eurekaserver
-#    environment:
-#      SPRING_CONFIG_IMPORT: "configserver:http://configserver:8071/"
-#    depends_on:
-#      configserver:
-#        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -212,6 +185,7 @@ services:
 
 
   user:
+    build: ../../user-service
     image: "zosh/salon-user:v1"
     ports:
       - "5001:5001"
@@ -223,9 +197,9 @@ services:
       retries: 10
       start_period: 10s
     depends_on:
-      #      configserver:
-      #        condition: service_healthy
       userdb:
+        condition: service_healthy
+      eurekaserver:
         condition: service_healthy
     deploy:
       resources:
@@ -234,7 +208,6 @@ services:
     environment:
       SPRING_APPLICATION_NAME: "user"
       SPRING_PROFILES_ACTIVE: default
-      #      SPRING_CONFIG_IMPORT: "optional:configserver:http://configserver:8071/"
       SPRING_DATASOURCE_URL: "jdbc:mysql://userdb:3306/userdb"
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
@@ -243,6 +216,7 @@ services:
       - zosh
 
   salon:
+    build: ../../salon
     image: "zosh/salon:v1"
     ports:
       - "5002:5002"
@@ -254,9 +228,9 @@ services:
       retries: 10
       start_period: 10s
     depends_on:
-#      configserver:
-#        condition: service_healthy
       salondb:
+        condition: service_healthy
+      eurekaserver:
         condition: service_healthy
     deploy:
       resources:
@@ -265,7 +239,6 @@ services:
     environment:
       SPRING_APPLICATION_NAME: "salon"
       SPRING_PROFILES_ACTIVE: default
-#      SPRING_CONFIG_IMPORT: "optional:configserver:http://configserver:8071/"
       SPRING_DATASOURCE_URL: "jdbc:mysql://salondb:3306/salondb"
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
@@ -274,6 +247,7 @@ services:
       - zosh
 
   booking:
+    build: ../../booking
     image: "zosh/salon-booking:v1"
     ports:
       - "5003:5003"
@@ -285,9 +259,11 @@ services:
       retries: 10
       start_period: 10s
     depends_on:
-      #      configserver:
-      #        condition: service_healthy
       bookingdb:
+        condition: service_healthy
+      rabbit:
+        condition: service_healthy
+      eurekaserver:
         condition: service_healthy
     deploy:
       resources:
@@ -296,16 +272,16 @@ services:
     environment:
       SPRING_APPLICATION_NAME: "booking"
       SPRING_PROFILES_ACTIVE: default
-      #      SPRING_CONFIG_IMPORT: "optional:configserver:http://configserver:8071/"
       SPRING_DATASOURCE_URL: "jdbc:mysql://bookingdb:3306/bookingdb"
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
-      SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS: "kafka:9092"
+      SPRING_RABBITMQ_HOST: rabbit
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka/
     networks:
       - zosh
 
   category:
+    build: ../../category
     image: "zosh/salon-category:v1"
     ports:
       - "5004:5004"
@@ -317,9 +293,9 @@ services:
       retries: 10
       start_period: 10s
     depends_on:
-      #      configserver:
-      #        condition: service_healthy
       categorydb:
+        condition: service_healthy
+      eurekaserver:
         condition: service_healthy
     deploy:
       resources:
@@ -328,7 +304,6 @@ services:
     environment:
       SPRING_APPLICATION_NAME: "category"
       SPRING_PROFILES_ACTIVE: default
-      #      SPRING_CONFIG_IMPORT: "optional:configserver:http://configserver:8071/"
       SPRING_DATASOURCE_URL: "jdbc:mysql://categorydb:3306/categorydb"
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
@@ -337,6 +312,7 @@ services:
       - zosh
 
   notification:
+    build: ../../notifications
     image: "zosh/salon-notification:v1"
     ports:
       - "5005:5005"
@@ -348,9 +324,11 @@ services:
       retries: 10
       start_period: 10s
     depends_on:
-      #      configserver:
-      #        condition: service_healthy
       notificationdb:
+        condition: service_healthy
+      rabbit:
+        condition: service_healthy
+      eurekaserver:
         condition: service_healthy
     deploy:
       resources:
@@ -359,16 +337,16 @@ services:
     environment:
       SPRING_APPLICATION_NAME: "notification"
       SPRING_PROFILES_ACTIVE: default
-      #      SPRING_CONFIG_IMPORT: "optional:configserver:http://configserver:8071/"
       SPRING_DATASOURCE_URL: "jdbc:mysql://notificationdb:3306/notificationdb"
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
-      SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS: "kafka:9092"
+      SPRING_RABBITMQ_HOST: rabbit
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka/
     networks:
       - zosh
 
   payment:
+    build: ../../payment
     image: "zosh/salon-payment:v1"
     ports:
       - "5006:5006"
@@ -380,9 +358,11 @@ services:
       retries: 10
       start_period: 10s
     depends_on:
-      #      configserver:
-      #        condition: service_healthy
       paymentdb:
+        condition: service_healthy
+      rabbit:
+        condition: service_healthy
+      eurekaserver:
         condition: service_healthy
     deploy:
       resources:
@@ -391,16 +371,16 @@ services:
     environment:
       SPRING_APPLICATION_NAME: "payment"
       SPRING_PROFILES_ACTIVE: default
-      #      SPRING_CONFIG_IMPORT: "optional:configserver:http://configserver:8071/"
       SPRING_DATASOURCE_URL: "jdbc:mysql://paymentdb:3306/paymentdb"
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
-      SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS: "kafka:9092"
+      SPRING_RABBITMQ_HOST: rabbit
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka/
     networks:
       - zosh
 
   review:
+    build: ../../review
     image: "zosh/salon-review:v1"
     ports:
       - "5007:5007"
@@ -412,9 +392,9 @@ services:
       retries: 10
       start_period: 10s
     depends_on:
-      #      configserver:
-      #        condition: service_healthy
       reviewdb:
+        condition: service_healthy
+      eurekaserver:
         condition: service_healthy
     deploy:
       resources:
@@ -423,7 +403,6 @@ services:
     environment:
       SPRING_APPLICATION_NAME: "review"
       SPRING_PROFILES_ACTIVE: default
-      #      SPRING_CONFIG_IMPORT: "optional:configserver:http://configserver:8071/"
       SPRING_DATASOURCE_URL: "jdbc:mysql://reviewdb:3306/reviewdb"
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
@@ -432,6 +411,7 @@ services:
       - zosh
 
   service-offering:
+    build: ../../service-offering
     image: "zosh/salon-service-offering:v1"
     ports:
       - "5008:5008"
@@ -443,9 +423,9 @@ services:
       retries: 10
       start_period: 10s
     depends_on:
-      #      configserver:
-      #        condition: service_healthy
       service-offeringdb:
+        condition: service_healthy
+      eurekaserver:
         condition: service_healthy
     deploy:
       resources:
@@ -454,7 +434,6 @@ services:
     environment:
       SPRING_APPLICATION_NAME: "service-offering"
       SPRING_PROFILES_ACTIVE: default
-      #      SPRING_CONFIG_IMPORT: "optional:configserver:http://configserver:8071/"
       SPRING_DATASOURCE_URL: "jdbc:mysql://service-offeringdb:3306/service-offeringdb"
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
@@ -462,9 +441,8 @@ services:
     networks:
       - zosh
 
-
-
   gatewayserver:
+    build: ../../gateway-server
     image: "zosh/salon-gatewayserver:v1"
     ports:
       - "5000:5000"
@@ -475,9 +453,11 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
-#    depends_on:
-#      configserver:
-#        condition: service_healthy
+    depends_on:
+      keycloak:
+        condition: service_started
+      eurekaserver:
+        condition: service_healthy
     deploy:
       resources:
         limits:
